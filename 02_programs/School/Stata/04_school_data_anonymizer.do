@@ -357,7 +357,7 @@ save "${save_dir}\school.dta", replace
 * ************* 2- Teachers data *********
 ********************************************************************************	
 
-use "${wrk_dir}/teachers.dta" 
+use "${wrk_dir}/teachers_Stata.dta" 
 
 
 *Checking IDs:
@@ -391,7 +391,7 @@ foreach var of local drop{
 }
 
 
-order hashed_school_code hashed_school_province hashed_school_district school_code school_name_preload district_code
+cap order hashed_school_code hashed_school_province hashed_school_district school_code school_name_preload district_code
 
 *------------------------------------------------------------------------------*
 *Addressing Strata varibale (adding the masked variblae extracted previously from the school file):
@@ -429,10 +429,10 @@ foreach var of local drop{
       di in r "return code for: `var': " _rc
 }
 
-order hashed_school_province district_code school_code_maskd
+cap order hashed_school_province district_code school_code_maskd
 
 *--- School geospatial data
-drop lat lon
+cap drop lat lon
 
 
 *--- School enrollement (dropping it since already addressed in the school file)
@@ -532,6 +532,11 @@ foreach var of local drop{
       capture drop `var'
       di in r "return code for: `var': " _rc
 }
+
+
+do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+do "${clone}/02_programs/School/Stata/labels.do"
 
 
 
