@@ -544,7 +544,7 @@ save "${save_dir}\teachers.dta"
 *------------------------------------------------------------------------------*
 *For first grade students
 *------------------------------------------------------------------------------*
-use "${wrk_dir}/first_grade_assessment.dta" 
+use "${wrk_dir}/first_grade_Stata.dta" 
 
 
 *Checking IDs:
@@ -593,7 +593,13 @@ foreach var of local drop{
       di in r "return code for: `var': " _rc
 }
 
+
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+
+label var school_code_maskd"Masked school code"
+
 order school_code_maskd
+
 
 * Saving anonymized g1 dataset 
 save "${save_dir}\first_grade_assessment.dta", replace
@@ -603,7 +609,7 @@ save "${save_dir}\first_grade_assessment.dta", replace
 *------------------------------------------------------------------------------*	
 *For fourth grade students
 *------------------------------------------------------------------------------*
-use "${wrk_dir}/fourth_grade_assessment.dta" 
+use "${wrk_dir}/fourth_grade_Stata.dta" 
 
 
 
@@ -650,6 +656,11 @@ foreach var of local drop{
       capture drop `var'
       di in r "return code for: `var': " _rc
 }
+
+
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+
+label var school_code_maskd"Masked school code"
 
 order school_code_maskd
 
