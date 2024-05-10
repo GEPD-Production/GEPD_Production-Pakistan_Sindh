@@ -27,7 +27,7 @@ gl save_dir "${processed_dir}//School//Anonymized//"
 * ************* 1- School data *********
 ********************************************************************************
 
-use "${wrk_dir}/school.dta" 
+use "${wrk_dir}/school_Stata.dta" 
 
 *Checking IDs:
 tab school_code, m				//Typically all schools should have an ID
@@ -162,7 +162,7 @@ restore
 }	
 
 
-drop m1s0q9__Latitude m1s0q9__Longitude
+cap drop m1s0q9__Latitude m1s0q9__Longitude m1s0q9__Accuracy m1s0q9__Altitude m1s0q9__Timestamp m1s0q9__Longitude m1s0q9__Latitude
 
 *--- School land line number and principal mobile number
 br m1saq2 m1saq2b
@@ -324,13 +324,20 @@ m2saq2__3 m2saq2__4 m2saq2__5 m2saq2__6 m2saq2__7 m2saq2__8 m2saq2__9 m2saq2__10
 m2saq2__12 m2saq2__13 m2saq2__14 m2saq2__15 m2saq2__16 m2saq2__17 m2saq2__18 m2saq2__19 ///
 m2saq2__20 m2saq2__21 m2saq2__22 m2saq2__23 m2saq2__24 m2saq2__25 m2saq2__26 m2saq2__27 ///
 m2saq2__28 m2saq2__29 m7sb_* m3sb_t* m3sb_etri_roster__0 m5sb_* m9saq1 m10s1q1* m10_teacher_name ///
-m1s0q8 m1s0q9__Timestamp interview__id interview__key district tehsil schoollevel shift
+m1s0q8 m1s0q9__Timestamp interview__id interview__key district tehsil schoollevel shift ///
+modules__2 modules__1 modules__7 modules__3 modules__5 modules__6 modules__4 modules__8 ///
+m2saq1 numEligible i1 i2 i3 i4 i5 available1 available2 available3 available4 available5 ///
+teacher_phone_number1 teacher_phone_number2 teacher_phone_number3 teacher_phone_number4 ///
+teacher_phone_number5 m1s0q6 m1saq2 m1saq2b fillout_teacher_q fillout_teacher_con ///
+fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo
 
 foreach var of local drop{
       capture drop `var'
       di in r "return code for: `var': " _rc
 }
 
+
+order school_code_maskd district_code school_province_preload total_enrolled_c numEligible4th grade5_yesno  m1* m4* subject_test s1* s2*  m5* m6* m7* m8*
 
 *------------------------------------------------------------------------------*
 *Saving anonymized school dataset:
