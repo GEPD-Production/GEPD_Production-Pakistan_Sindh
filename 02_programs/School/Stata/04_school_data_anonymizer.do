@@ -329,7 +329,9 @@ modules__2 modules__1 modules__7 modules__3 modules__5 modules__6 modules__4 mod
 m2saq1 numEligible i1 i2 i3 i4 i5 available1 available2 available3 available4 available5 ///
 teacher_phone_number1 teacher_phone_number2 teacher_phone_number3 teacher_phone_number4 ///
 teacher_phone_number5 m1s0q6 m1saq2 m1saq2b fillout_teacher_q fillout_teacher_con ///
-fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo
+fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo ///
+m5s2q1c_number_new m5s2q1e_number_new m5s1q1f_grammer_new monitoring_inputs_temp monitoring_infrastructure_temp ///
+principal_training_temp school_teacher_ques_INPT
 
 foreach var of local drop{
       capture drop `var'
@@ -338,6 +340,10 @@ foreach var of local drop{
 
 
 order school_code_maskd district_code school_province_preload total_enrolled_c numEligible4th grade5_yesno  m1* m4* subject_test s1* s2*  m5* m6* m7* m8*
+
+do "${clone}/02_programs/School/Stata/labels.do"
+
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
 
 *------------------------------------------------------------------------------*
 *Saving anonymized school dataset:
