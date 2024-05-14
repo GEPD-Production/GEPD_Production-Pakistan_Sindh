@@ -329,7 +329,10 @@ modules__2 modules__1 modules__7 modules__3 modules__5 modules__6 modules__4 mod
 m2saq1 numEligible i1 i2 i3 i4 i5 available1 available2 available3 available4 available5 ///
 teacher_phone_number1 teacher_phone_number2 teacher_phone_number3 teacher_phone_number4 ///
 teacher_phone_number5 m1s0q6 m1saq2 m1saq2b fillout_teacher_q fillout_teacher_con ///
-fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo
+
+fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo ///
+m5s2q1c_number_new m5s2q1e_number_new m5s1q1f_grammer_new monitoring_inputs_temp monitoring_infrastructure_temp ///
+principal_training_temp school_teacher_ques_INPT
 
 foreach var of local drop{
       capture drop `var'
@@ -337,7 +340,15 @@ foreach var of local drop{
 }
 
 
+
+do "${clone}/02_programs/School/Stata/labels.do"
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+
+label var district_code "Masked district code"
+label var school_code_maskd"Masked school code"
+
 order school_code_maskd district_code school_province_preload total_enrolled_c numEligible4th grade5_yesno  m1* m4* subject_test s1* s2*  m5* m6* m7* m8*
+
 
 *------------------------------------------------------------------------------*
 *Saving anonymized school dataset:
@@ -351,7 +362,7 @@ save "${save_dir}\school.dta", replace
 * ************* 2- Teachers data *********
 ********************************************************************************	
 
-use "${wrk_dir}/teachers.dta" 
+use "${wrk_dir}/teachers_Stata.dta" 
 
 
 *Checking IDs:
@@ -385,7 +396,7 @@ foreach var of local drop{
 }
 
 
-order hashed_school_code hashed_school_province hashed_school_district school_code school_name_preload district_code
+order   school_code  district_code
 
 *------------------------------------------------------------------------------*
 *Addressing Strata varibale (adding the masked variblae extracted previously from the school file):
@@ -423,10 +434,10 @@ foreach var of local drop{
       di in r "return code for: `var': " _rc
 }
 
-order hashed_school_province district_code school_code_maskd
+order  district_code school_code_maskd
 
 *--- School geospatial data
-drop lat lon
+cap drop lat lon
 
 
 *--- School enrollement (dropping it since already addressed in the school file)
@@ -528,11 +539,20 @@ foreach var of local drop{
 }
 
 
+do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+do "${clone}/02_programs/School/Stata/labels.do"
+
+
+order district_code school_code_maskd	teachers__id 
+
+label var district_code "Masked district code"
+label var school_code_maskd"Masked school code"
 
 *------------------------------------------------------------------------------*
 *Saving anonymized teacher dataset:
 *-------------------------------------
-save "${save_dir}\teachers.dta"
+save "${save_dir}\teachers.dta", replace
 
 	clear
 
