@@ -329,6 +329,7 @@ modules__2 modules__1 modules__7 modules__3 modules__5 modules__6 modules__4 mod
 m2saq1 numEligible i1 i2 i3 i4 i5 available1 available2 available3 available4 available5 ///
 teacher_phone_number1 teacher_phone_number2 teacher_phone_number3 teacher_phone_number4 ///
 teacher_phone_number5 m1s0q6 m1saq2 m1saq2b fillout_teacher_q fillout_teacher_con ///
+
 fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo ///
 m5s2q1c_number_new m5s2q1e_number_new m5s1q1f_grammer_new monitoring_inputs_temp monitoring_infrastructure_temp ///
 principal_training_temp school_teacher_ques_INPT
@@ -563,7 +564,7 @@ save "${save_dir}\teachers.dta", replace
 *------------------------------------------------------------------------------*
 *For first grade students
 *------------------------------------------------------------------------------*
-use "${wrk_dir}/first_grade_assessment.dta" 
+use "${wrk_dir}/first_grade_Stata.dta" 
 
 
 *Checking IDs:
@@ -612,7 +613,13 @@ foreach var of local drop{
       di in r "return code for: `var': " _rc
 }
 
+
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+
+label var school_code_maskd"Masked school code"
+
 order school_code_maskd
+
 
 * Saving anonymized g1 dataset 
 save "${save_dir}\first_grade_assessment.dta", replace
@@ -622,7 +629,7 @@ save "${save_dir}\first_grade_assessment.dta", replace
 *------------------------------------------------------------------------------*	
 *For fourth grade students
 *------------------------------------------------------------------------------*
-use "${wrk_dir}/fourth_grade_assessment.dta" 
+use "${wrk_dir}/fourth_grade_Stata.dta" 
 
 
 
@@ -669,6 +676,11 @@ foreach var of local drop{
       capture drop `var'
       di in r "return code for: `var': " _rc
 }
+
+
+do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
+
+label var school_code_maskd"Masked school code"
 
 order school_code_maskd
 
