@@ -108,7 +108,14 @@ sort school_code
 
 
 ********************************************************************************
-* Comment_AR:
+* Comment_AR: Please note that m2saq1 is asked in the teacher roster (i.e. module 1). The module_1 dummy is 0 for the row which says m2saq1 = 18
+
+
+* Dropping problematic observation:
+ta modules__1 if school_code == 408140059 & m2saq1 == 18 
+drop if school_code == 408140059 & m2saq1 == 18 
+
+
 
 * Adjust value label names that are too long 
 
