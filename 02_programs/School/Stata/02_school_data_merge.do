@@ -52,6 +52,8 @@ use "${data_dir}\\School\\EPDashboard2_update.dta"
 * Dropping problematic observation:
 drop if school_code_preload == "408140059" & m2saq1 == 18 
 
+* replace m2saq1 =. if school_code_preload == "408140059" & m2saq1 == 18 
+
 
 ********
 *read in the school weights
