@@ -43,7 +43,6 @@ cap drop school_absence_rate
 cap drop sch_absence_rate 
 cap drop absence_rate
 
-
 ************
 *4th grade assessment
 ************

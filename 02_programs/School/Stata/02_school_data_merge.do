@@ -49,11 +49,39 @@ frame change school
 
 use "${data_dir}\\School\\EPDashboard2_update.dta" 
 
-* Dropping problematic observation:
+
+********************************************************************************
+* Comment_AR: Dropping problematic observations as a result of modules check developed:
 * drop if school_code_preload == "408140059" & m2saq1 == 18 
+* replace m2saq1 =. if school_code_preload == "408140059" & m2saq1 == 18 
 
-replace m2saq1 =. if school_code_preload == "408140059" & m2saq1 == 18 
+* Duplicates:
+* roster:
+drop if interview__id =="b31c48fa50e14081a96416719b5e8d79"  // 408150002
 
+* school information:
+drop if interview__id == "c4692717cfd649c5b77b54e72cbccfb3" // 408140059
+
+* teacher obervation:
+drop if interview__id == "62d1a271b98b489189a6962369d4c96b" //
+
+* Drop replicated module 8 filled by the enumerator:
+
+* Module 8 duplciated and wrongly filled in interview_id "40e6440bd3b3408c9bdd95dac36f0183":
+
+foreach var in m8_bilingual_class m8_bilingual_school m8_teacher_code m8_teacher_name m8s1q1__0 m8s1q1__1 m8s1q1__10 m8s1q1__11 m8s1q1__12 m8s1q1__13 m8s1q1__14 m8s1q1__15 m8s1q1__16 m8s1q1__17 m8s1q1__18 m8s1q1__19 m8s1q1__2 m8s1q1__20 m8s1q1__21 m8s1q1__22 m8s1q1__23 m8s1q1__24 m8s1q1__25 m8s1q1__26 m8s1q1__27 m8s1q1__28 m8s1q1__29 m8s1q1__3 m8s1q1__30 m8s1q1__31 m8s1q1__32 m8s1q1__33 m8s1q1__34 m8s1q1__35 m8s1q1__36 m8s1q1__37 m8s1q1__38 m8s1q1__39 m8s1q1__4 m8s1q1__40 m8s1q1__41 m8s1q1__42 m8s1q1__43 m8s1q1__44 m8s1q1__45 m8s1q1__46 m8s1q1__47 m8s1q1__48 m8s1q1__49 m8s1q1__5 m8s1q1__6 m8s1q1__7 m8s1q1__8 m8s1q1__9 {
+    // Check if the variable is numeric or string using ds
+    ds `var', has(type numeric)
+    if _rc == 0 { // If ds finds the variable is numeric
+        replace `var' = . if interview__id == "40e6440bd3b3408c9bdd95dac36f0183" 
+    }
+    else { // Otherwise, assume it is string
+        replace `var' = "" if interview__id == "40e6440bd3b3408c9bdd95dac36f0183"
+    }
+}
+
+
+ 
 
 ********
 *read in the school weights
@@ -290,6 +318,14 @@ replace teacher_pedagogy_weight=1 if missing(teacher_pedagogy_weight) //fix issu
 fre in_pedagogy
 unique school_code if in_pedagogy ==1
 
+* Comment_AR: Confirmed with Firm:
+replace school_code = 408140059 if school_code ==. 
+
+* drop if interview__id == "c4692717cfd649c5b77b54e72cbccfb3"
+
+isid school_code teachers__id
+
+
 **TEACH: VARS: CODE REMOVED:
 ********************************************************************************
 save "${processed_dir}\\School\\Confidential\\Merged\\teachers.dta" , replace
@@ -376,9 +412,20 @@ gen g4_stud_weight=g4_class_weight*g4_student_weight_temp
 format school_code %12.0f
 
 * Comment_AR: Mannual change in school_code: 
+* replace school_code = 407030180 in 2396
+* replace school_code = 407030180 in 2397
 
-replace school_code = 407030180 in 2396
-replace school_code = 407030180 in 2397
+* Drop duplicate observations in assessment data:
+
+* isid school_code fourth_grade_assessment__id
+
+duplicates tag school_code fourth_grade_assessment__id, gen(x)
+list school_code if x ==1 
+
+drop if interview__id == "587406646cbe4f7f8b2ae9fade70c555"
+
+isid school_code fourth_grade_assessment__id
+
 
 *******************************************************************************
 
