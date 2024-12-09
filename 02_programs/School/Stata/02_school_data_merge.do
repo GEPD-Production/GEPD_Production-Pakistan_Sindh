@@ -55,6 +55,7 @@ use "${data_dir}\\School\\EPDashboard2_update.dta"
 * drop if school_code_preload == "408140059" & m2saq1 == 18 
 * replace m2saq1 =. if school_code_preload == "408140059" & m2saq1 == 18 
 
+
 * Duplicates:
 * roster:
 drop if interview__id =="b31c48fa50e14081a96416719b5e8d79"  // 408150002
@@ -63,10 +64,36 @@ drop if interview__id =="b31c48fa50e14081a96416719b5e8d79"  // 408150002
 drop if interview__id == "c4692717cfd649c5b77b54e72cbccfb3" // 408140059
 
 * teacher obervation:
-drop if interview__id == "62d1a271b98b489189a6962369d4c96b" //
+drop if interview__id == "5b1191226cb2465fa8a56482650ad949" // 414040291 (Teacher Waqar Rasheed dropped) 
 
-* Drop replicated module 8 filled by the enumerator:
+order school_code_preload modules__1 modules__2 modules__3 modules__4 modules__5 modules__6 modules__7 modules__8
+br interview__id school_code_preload modules__1 modules__2 modules__3 modules__4 modules__5 modules__6 modules__7 modules__8 m1* m8* m4* m6* s1* s2* if school_code_preload == "414040291"
 
+
+
+* Drop duplicate observations in m4 and s1* and s2* For 414040291:
+foreach var in m4saq1 m4saq1_number m4scq1_infr m4scq2_infr m4scq3_infr m4scq4_inpt m4scq4n_girls m4scq5_inpt m4scq6_inpt m4scq7_inpt m4scq8_inpt m4scq9_inpt m4scq10_inpt m4scq11_inpt m4scq12_inpt m4scq13_girls m4scq14_see m4scq14_sound m4scq14_walk m4scq14_comms m4scq14_learn m4scq14_behav m4scq15_lang s1_0_1_1 s1_0_1_2 s1_0_2_1 s1_0_2_2 s1_0_3_1 s1_0_3_2 s1_a1 s1_a1_1 s1_a1_2 s1_a1_3 s1_a1_4a s1_a1_4b s1_a2 s1_a2_1 s1_a2_2 s1_a2_3 s1_b3 s1_b3_1 s1_b3_2 s1_b3_3 s1_b3_4 s1_b4 s1_b4_1 s1_b4_2 s1_b4_3 s1_b5 s1_b5_1 s1_b5_2 s1_b6 s1_b6_1 s1_b6_2 s1_b6_3 s1_c7 s1_c7_1 s1_c7_2 s1_c7_3 s1_c8 s1_c8_1 s1_c8_2 s1_c8_3 s1_c9 s1_c9_1 s1_c9_2 s1_c9_3 s2_0_1_1 s2_0_1_2 s2_0_2_1 s2_0_2_2 s2_0_3_1 s2_0_3_2 s2_a1 s2_a1_1 s2_a1_2 s2_a1_3 s2_a1_4a s2_a1_4b s2_a2 s2_a2_1 s2_a2_2 s2_a2_3 s2_b3 s2_b3_1 s2_b3_2 s2_b3_3 s2_b3_4 s2_b4 s2_b4_1 s2_b4_2 s2_b4_3 s2_b5 s2_b5_1 s2_b5_2 s2_b6 s2_b6_1 s2_b6_2 s2_b6_3 s2_c7 s2_c7_1 s2_c7_2 s2_c7_3 s2_c8 s2_c8_1 s2_c8_2 s2_c8_3 s2_c9 s2_c9_1 s2_c9_2 s2_c9_3  {
+    // Check if the variable is numeric or string using ds
+    ds `var', has(type numeric)
+    if _rc == 0 { // If ds finds the variable is numeric
+        replace `var' = . if interview__id == "5b1191226cb2465fa8a56482650ad949" 
+    }
+    else { // Otherwise, assume it is string
+        replace `var' = "" if interview__id == "5b1191226cb2465fa8a56482650ad949"
+    }
+}
+
+
+
+*replace m4* =. if m4 ==1 & interview__id == "5b1191226cb2465fa8a56482650ad949"
+*drop if m4 ==1 & interview__id == "62d1a271b98b489189a6962369d4c96b"
+
+replace modules__4 = 0 if interview__id == "5b1191226cb2465fa8a56482650ad949"
+ 
+
+
+
+* Drop replicated module 8 filled by the enumerator:655a68c2c63848318f6941824aeb72f7655a68c2c63848318f6941824aeb72f7
 * Module 8 duplciated and wrongly filled in interview_id "40e6440bd3b3408c9bdd95dac36f0183":
 
 foreach var in m8_bilingual_class m8_bilingual_school m8_teacher_code m8_teacher_name m8s1q1__0 m8s1q1__1 m8s1q1__10 m8s1q1__11 m8s1q1__12 m8s1q1__13 m8s1q1__14 m8s1q1__15 m8s1q1__16 m8s1q1__17 m8s1q1__18 m8s1q1__19 m8s1q1__2 m8s1q1__20 m8s1q1__21 m8s1q1__22 m8s1q1__23 m8s1q1__24 m8s1q1__25 m8s1q1__26 m8s1q1__27 m8s1q1__28 m8s1q1__29 m8s1q1__3 m8s1q1__30 m8s1q1__31 m8s1q1__32 m8s1q1__33 m8s1q1__34 m8s1q1__35 m8s1q1__36 m8s1q1__37 m8s1q1__38 m8s1q1__39 m8s1q1__4 m8s1q1__40 m8s1q1__41 m8s1q1__42 m8s1q1__43 m8s1q1__44 m8s1q1__45 m8s1q1__46 m8s1q1__47 m8s1q1__48 m8s1q1__49 m8s1q1__5 m8s1q1__6 m8s1q1__7 m8s1q1__8 m8s1q1__9 {
@@ -81,7 +108,12 @@ foreach var in m8_bilingual_class m8_bilingual_school m8_teacher_code m8_teacher
 }
 
 
- 
+* Wrong teacher__id entered. change from the Firm.
+ replace m4saq1_number = 15 if  school_code_preload == "415050313" // wrong teacher__id entered
+
+********************************************************************************
+
+
 
 ********
 *read in the school weights
