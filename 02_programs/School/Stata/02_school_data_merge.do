@@ -284,7 +284,43 @@ frame change teachers
 * See Merge_Teacher_Modules code folder for help in this task if needed
 ********
 
-use "${data_dir}\\School\\Sindh_teacher_level_test.dta"
+********************************************************************************
+preserve
+
+use "${data_dir}\\School\\Sindh_teacher_level_test.dta", clear 
+
+isid interview__key TEACHERS__id
+
+tempfile teacher
+save `teacher', replace
+
+use"${data_dir}\\School\\questionnaire_roster_manual.dta" , clear
+
+* rename *_manual* **
+* gen TEACHERS__id=m3sb_tnumber
+
+unique interview__key TEACHERS__id // not unique 
+
+
+tempfile manual
+save `manual', replace
+
+merge 1:1 interview__key TEACHERS__id using `teacher'
+
+tab _merge
+drop _merge 
+
+tempfile Sindh_teacher_level_test
+save `Sindh_teacher_level_test', replace
+
+restore 
+
+********************************************************************************
+* use "${data_dir}\\School\\Sindh_teacher_level_test.dta"
+
+use `Sindh_teacher_level_test', clear
+
+
 
 * Rename all variables to lower case:
 ren *, lower 
@@ -356,6 +392,9 @@ replace school_code = 408140059 if school_code ==.
 * drop if interview__id == "c4692717cfd649c5b77b54e72cbccfb3"
 
 isid school_code teachers__id
+
+//Check that manual roster info is added:
+* br school_code m3* if school_code == 406031103
 
 
 **TEACH: VARS: CODE REMOVED:
