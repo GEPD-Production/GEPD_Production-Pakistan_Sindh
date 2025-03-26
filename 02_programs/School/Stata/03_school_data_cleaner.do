@@ -4,6 +4,7 @@
 
 clear all
 
+
 *set the paths
 gl data_dir ${clone}/01_GEPD_raw_data/
 gl processed_dir ${clone}/03_GEPD_processed_data/
@@ -416,6 +417,37 @@ bin_var m8saq7k_gir 3
 
 * Grade lonely giraffe question
 * This part is not clear in Stata, as Stata does not have a group_by equivalent
+
+/*
+*grade circling questions
+foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
+	
+	*number of letters/words/numbers circled by each student
+	egen number_`v' = rowtotal(`v'__1 `v'__2 `v'__3 `v'__4 `v'__5 `v'__6 `v'__7 `v'__8 `v'__9)
+
+	*address the cases of no response to make sure that those marked as no response is marked as 0 if we have 1 in other options
+	forvalues i = 1/9 {
+		replace `v'__99 = 0 if `v'__`i' == 1
+	}
+}
+
+*also generate a dummy if the letters from the manual were circled
+*h, F, v letters (3, 4, 6), respect, greet and fruit words (2, 6, 7), 4, 23, 55 numbers (1, 3, 4)
+gen number_m8saq2_id_cor = 1 if m8saq2_id__3 == 1 & m8saq2_id__4 == 1 & m8saq2_id__6 == 1 & number_m8saq2_id == 3
+gen number_m8saq3_id_cor = 1 if m8saq3_id__2 == 1 & m8saq3_id__6 == 1 & m8saq3_id__7 == 1 & number_m8saq3_id == 3
+gen number_m8sbq1_number_sense_cor = 1 if m8sbq1_number_sense__1 == 1 & m8sbq1_number_sense__3 == 1 & m8sbq1_number_sense__4 == 1 & number_m8sbq1_number_sense == 3
+
+
+*do the following check: (i) if the number of correct (according to the manual) is >= 50% OR if the number of students circling three letters is 50%, then do not drop this question from grading. 
+foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
+	replace number_`v'_cor = 0 if number_`v'_cor != 1 & number_`v' != . 
+	
+	*now check the mean for each of them 
+	sum number_`v'_cor
+	local mean_`v' = `r(mean)'
+}
+
+*/
 
 * Call out scorer
 qui ds m8saq2_id* m8saq3_id* m8sbq1_number_sense*
@@ -835,15 +867,58 @@ frame put *,into(pknw_actual_cont)
 
 frame copy teachers pknw_actual_exper_temp
 frame change pknw_actual_exper_temp
-keep if !missing(m3saq5)
 
 *keep school_code m3sb_tnumber m3saq5 m3saq6  // Comment_AR: taking m3sb_tnumber out as there is no variable for teacher id from module 3 as survey design changed. Teacher ids are now auto-populated. 
 
-keep school_code m3saq5 m3saq6
+
+*just for now for the purposes of fuzzy matching try to get a list of all teachers from the roster
+preserve 
+	keep school_code m2saq2 m3saq5 m3saq6 m5s2q1c_number m5s2q1e_number m5s1q1f_grammer
+	
+	*for simplicity, drop the ones that do not have any relevant answers
+	egen missing = rownonmiss(m3saq5 m3saq6 m5s1q1f_grammer m5s2q1c_number m5s2q1e_number)
+	
+	*drop if missing == 0
+	*drop missing
+	
+	rename m2saq2 name
+	replace name = strupper(name)
+
+	duplicates drop
+	isid school_code name
+	
+	gen experience=$year - m3saq5
+
+	tempfile for_fuzzy_teacher
+	save `for_fuzzy_teacher'
+	
+	unique school_code 
+	
+	if `r(unique)' != 200 {
+		di "Some schools do not have the necessary data"
+		break
+	}
+	
+restore
+
+keep if !missing(m3saq5)
+
+keep school_code m2saq2 m3saq5 m3saq6 m3s0q1
 
 gen experience=$year - m3saq5
-keep if experience<3
-egen teacher_count_experience_less3 = count(school_code), by(school_code)
+
+*keep if experience<3
+egen teacher_count_experience_less3_a = count(school_code) if experience <3 & experience != ., by(school_code)
+
+*count the number of teachers per school that answered this question (to be able to proprely get 0)
+bysort school_code: egen counter = count(experience) 
+
+bysort school_code: egen teacher_count_experience_less3 = max(teacher_count_experience_less3_a) if experience != .
+
+replace teacher_count_experience_less3 = 0 if teacher_count_experience_less3 == . & counter != .
+
+drop counter teacher_count_experience_less3_a m2saq2 m3saq5 m3saq6 m3s0q1
+
 collapse (first) teacher_count_experience_less3, by(school_code)
 frame put *,into(pknw_actual_exper)
 
@@ -852,16 +927,253 @@ frame change pknw_actual_school_inpts
 keep school_code blackboard_functional m4scq5_inpt m4scq4_inpt
 
 frame change school
+
 frlink 1:1 school_code, frame(pknw_actual_cont)
 frget * , from(pknw_actual_cont)
 frlink 1:1 school_code, frame(pknw_actual_exper)
 frget * , from(pknw_actual_exper)
 
-replace teacher_count_experience_less3 = 0 if missing(teacher_count_experience_less3)
+*now prepare the file for principals
+frame copy school pknw
+frame change pknw
+
+preserve 
+	keep school_code m7sb_troster_pknw__* m7sfq5_pknw__* m7sfq6_pknw__* m7sfq7_pknw__* m7sfq9_pknw_filter m7sfq10_pknw m7sfq11_pknw m7sfq9_pknw__* m7sfq10_pknw m4scq5_inpt m7sfq11_pknw blackboard_functional m4scq4_inpt strata school_weight m4scq12_inpt
+	
+	foreach v of varlist m7sb_troster_pknw__* {
+		replace `v' = "" if `v' == "##N/A##"
+	}
+	
+	*now let's just reshape it to school teacher level
+	reshape long m7sb_troster_pknw__, i(school_code) j(id)
+	
+	drop if m7sb_troster_pknw__ == ""
+	
+	replace id = id + 1
+	
+	*!!! discuss with Brian how the logic is supposed to work for these questions in SS
+	*just checking that the logic holds 
+	egen m7sfq5_pknw_count = rownonmiss(m7sfq5_pknw__*)
+	egen m7sfq6_pknw_count = rownonmiss(m7sfq6_pknw__*)
+	egen m7sfq7_pknw_count = rownonmiss(m7sfq7_pknw__*)
+	egen m7sfq9_pknw_count = rownonmiss(m7sfq9_pknw__*)
+	
+	bysort school_code: egen id_count = count(id)
+	
+	foreach v in m7sfq5_pknw m7sfq6_pknw m7sfq7_pknw m7sfq9_pknw {
+		gen `v' = 1 if `v'__0 == id | `v'__1 == id | `v'__2 == id | `v'__3 == id | `v'__4 == id | `v'__5 == id | `v'__6 == id | `v'__7 == id
+		*there are some instances on SS when ids seem to be shifted, to minimize the errors here, count the number of teachers that were displayed and the number of teachers were a principal gave an answer, if the numbers match, set them to 1
+		replace `v' = 1 if id_count == `v'_count & `v' == .
+		replace `v' = 0 if `v' != 1
+	}
+	
+	keep school_code m7sb_troster_pknw__ m7sfq5_pknw m7sfq6_pknw m7sfq7_pknw m7sfq9_pknw m7sfq9_pknw_filter m7sfq10_pknw m4scq5_inpt m7sfq11_pknw blackboard_functional m4scq4_inpt strata school_weight m4scq12_inpt
+	
+	replace m7sfq9_pknw = 0 if inlist(m7sfq9_pknw_filter, 0, 98) // setting do not know to 0
+	
+	drop m7sfq9_pknw_filter
+	rename m7sb_troster_pknw__ name
+	replace name = strupper(name)
+	
+	*adjust some names to be consistent with the names on the roster
+	replace name = "MUDDASAR" if name == "MIDDASIR" & school_code == 403010089
+	replace name = "FAHEEMA" if name == "FAHMEENA" & school_code == 403020054
+	replace name = "NATHO" if name == "NAITO" & school_code == 404020356
+	replace name = "GEANO 1" if name == "GENO" & school_code == 406030493
+	replace name = "KOUSAR 8" if name == "KOUSER JAHAN" & school_code == 408140059
+	replace name = "RAFEEQ AHMED" if name == "RAFIQUE" & school_code == 413010157
+	replace name = "MUHAMMAD WARIS MEMON 1" if name == "M. WARIS" & school_code == 417020374
+	replace name = "DIVENDEER" if name == "DEVINDER" & school_code == 420020044
+	replace name = "KHLID HUSAIN" if name == "KHALI" & school_code == 420020538
+	
+	isid school_code name 
+	
+	tempfile for_fuzzy_principal
+	save `for_fuzzy_principal'
+	
+	unique school_code 
+	
+	if `r(unique)' != 200 {
+		di "Some schools do not have the necessary data"
+		break
+	}
+	
+restore
+
+*now merge on the school number to see what schools never collected the relevant data from teachers 
+use `for_fuzzy_principal', clear
+
+*first try to merge them in by a perfect match between the school code and the name
+merge 1:1 school_code name using `for_fuzzy_teacher' // 474
+
+preserve 
+	keep if _merge == 3
+	
+	tempfile perfect_match
+	save `perfect_match'
+restore
+
+
+*for the remaining ones, let's try a fuzzy match
+*save the teachers from the teacher file 
+preserve
+	keep if _merge == 2 
+	
+	gen idusing = _n
+	gen txtusing = name 
+	
+	levelsof school_code, local(schools)
+
+	tempfile teachers_final 
+	save `teachers_final'
+restore
+
+keep if _merge == 1
+
+gen idmaster = _n
+gen txtmaster = name
+
+tempfile schools_final
+save `schools_final' // to be able to bring this back later after the fuzzy merge
+
+levelsof school_code, local(schools_principal)
+
+foreach s of local schools_principal {
+	preserve 
+		keep if school_code == `s'
+		
+		tempfile school_`s'
+		save `school_`s''
+		
+	restore
+	
+}
+
+use `teachers_final', clear
+
+levelsof school_code, local(schools)
+
+foreach s of local schools {
+	preserve 
+		keep if school_code == `s'
+		
+		tempfile teachers_`s'
+		save `teachers_`s''
+	restore
+}
+
+foreach s of local schools_principal {
+	
+	use `school_`s'', clear
+	
+	cap matchit idmaster txtmaster using `teachers_`s'', idusing(idusing) txtusing(txtusing)
+	
+	*keep only the one with the highest score
+	cap bysort idmaster txtmaster: egen double max_score = max(similscore)
+	cap keep if similscore == max_score
+	
+	tempfile final_`s'
+	save `final_`s''
+}
+
+local counter = 1 
+
+foreach s of local schools_principal {
+	
+	if `counter' == 1 {
+		use `final_`s'', clear
+	}
+	else {
+		append using `final_`s''
+	}
+	
+	local counter = `counter' + 1 
+	
+}
+
+*remove the ones that were not matched
+drop if txtusing == ""
+keep idmaster idusing txtmaster txtusing similscore
+
+
+*we need to make sure that we are only matching one teacher from the principal module to one teacher from the teacher module. this cleaning is CAR specific so we will need to adjust it for other countries
+drop if txtmaster == "MUSHTAQUE" & txtusing == "MUSHTAQUE AHMED 5" // a bit of speculation, but given that the principal said that only one of them has less than 3 years of experience, keep the corresponding match from the roster data
+drop if txtmaster == "MUSHTAQUE AHMED" & txtusing == "MUSHTAQUE AHMED 2"
+drop if txtmaster == "AMINA" & txtusing == "SAMINA KHANUM"
+isid idmaster txtmaster
+
+isid idusing txtusing
+
+*now bring in the data from the main modules
+merge 1:1 idmaster txtmaster using `schools_final', gen(merge_schools) // 7 unmatched cases
+merge m:1 idusing txtusing using `teachers_final', gen(merge_teachers) update
+
+
+*in case of CAR, everything has been confirmed, we can drop the ones from the teachers modules that were not matched to any teachers in the principal module. keeping 11 teachers from the principal module that cannot be matched to any teachers in the school
+drop if merge_teachers == 2
+
+*bring in the data from the perfect match
+append using `perfect_match'
+
+*dropping irrelevant variables
+drop idmaster idusing txtmaster txtusing similscore 
+order school_code name missing
+
+count if _merge != 3 & merge_schools != 3 // 11 unmerged
+
+tab missing, miss // 0 with no relevant information from any teacher module
+tab experience, miss // 325 (38%) with no information on experience
+
+
+*first compute the variables we need on a teacher level 
+gen add_triple_digit_pknw_t_lvl = 1 - abs(m7sfq5_pknw-m5s2q1c_number)
+
+gen multiply_double_digit_pknw_t_lvl = 1 - abs(m7sfq6_pknw-m5s2q1e_number)
+
+gen complete_sentence_pknw_t_lvl = 1 - abs(m7sfq7_pknw-m5s1q1f_grammer)
+
+gen experience_less_3 = 1 if experience < 3 & !missing(experience)
+replace experience_less_3  = 0 if experience_less_3 == . & !missing(experience) 
+
+gen experience_pknw_t_lvl = 1 - abs(m7sfq9_pknw - experience_less_3)
+
+*now create final variables based on the 80% threshold for the school
+foreach v in add_triple_digit_pknw multiply_double_digit_pknw complete_sentence_pknw experience_pknw {
+	bysort school_code: egen count_`v' = count(`v'_t_lvl) // total number of nonmissing for each question for each school
+	bysort school_code: egen good_`v' = sum(`v'_t_lvl)
+	
+	gen share_`v' = good_`v'/count_`v' if count_`v' != 0
+	
+	gen `v' = 1 if share_`v' >= 0.8 & share_`v' != .
+	replace `v' = 0 if share_`v' < 0.8 & share_`v' != .
+	
+}
+
+
+*!!! REMOVED THE DIVISION, JUST COMPARING THE NUMBERS (DISCUSS!!!). Adjusting the principal estimation by the attendance rate
+gen attendance = m4scq4_inpt/m4scq12_inpt
+gen textbooks_pknw = 1 if ((attendance*m7sfq10_pknw >= 0.8*m4scq5_inpt & attendance*m7sfq10_pknw <= 1.2*m4scq5_inpt & !missing(m7sfq10_pknw-m4scq5_inpt)))
+replace textbooks_pknw = 0 if textbooks_pknw == . & !missing(m7sfq10_pknw-m4scq5_inpt)
+
+gen blackboard_pknw = 1 if m7sfq11_pknw==blackboard_functional & !missing(m7sfq11_pknw) & !missing(blackboard_functional)
+replace blackboard_pknw = 0 if !missing(m7sfq11_pknw) & !missing(blackboard_functional) & m7sfq11_pknw == 98 // per conversation with Brian, if a principal does not know if there is blackboard, then we can set this to 0 
+replace blackboard_pknw = 0 if m7sfq11_pknw!=blackboard_functional & !missing(m7sfq11_pknw) & !missing(blackboard_functional)
+
+*finally only keep the relevant variables and bring it to the school level
+keep school_code add_triple_digit_pknw multiply_double_digit_pknw complete_sentence_pknw experience_pknw textbooks_pknw blackboard_pknw strata school_weight
+
+duplicates drop
+
+isid school_code
+
+
+
+/*
+*replace teacher_count_experience_less3 = 0 if missing(teacher_count_experience_less3)
 gen m5s2q1c_number_new = m5s2q1c_number*m5_teach_count
 gen m5s2q1e_number_new=m5s2q1e_number*m5_teach_count,
 gen m5s1q1f_grammer_new=m5s1q1f_grammer*m5_teach_count
-
+*
 * create a new indicator, m7sfq5_pknw, which contains the number of non-missing responses to questions starting with m7sfq5_pknw__*
 gen m7sfq5_pknw = 0
 ds m7sfq5_pknw__*
@@ -882,18 +1194,26 @@ replace m7sfq7_pknw = m7sfq7_pknw + (!missing(`var'))
 
 gen add_triple_digit_pknw = 1 if ((1-abs(m7sfq5_pknw-m5s2q1c_number_new)/m7_teach_count>= 0.8) | (m7sfq5_pknw-m5s2q1c_number_new <= 1)) & !missing(m7sfq5_pknw) & !missing(m5s2q1c_number_new) & !missing(m7_teach_count)
 replace add_triple_digit_pknw = 0 if !((1-abs(m7sfq5_pknw-m5s2q1c_number_new)/m7_teach_count>= 0.8) | (m7sfq5_pknw-m5s2q1c_number_new <= 1)) & !missing(m7sfq5_pknw) & !missing(m5s2q1c_number_new) & !missing(m7_teach_count)
+
 gen multiply_double_digit_pknw = 1 if ((1-abs(m7sfq6_pknw-m5s2q1e_number_new)/m7_teach_count>= 0.8) | (m7sfq6_pknw-m5s2q1e_number_new <= 1)) & !missing(m7sfq6_pknw) & !missing(m5s2q1e_number_new) & !missing(m7_teach_count)
 replace multiply_double_digit_pknw = 0 if !((1-abs(m7sfq6_pknw-m5s2q1e_number_new)/m7_teach_count>= 0.8) | (m7sfq6_pknw-m5s2q1e_number_new <= 1)) & !missing(m7sfq6_pknw) & !missing(m5s2q1e_number_new) & !missing(m7_teach_count)
+
 gen complete_sentence_pknw = 1 if ((1-abs(m7sfq7_pknw-m5s1q1f_grammer_new)/m7_teach_count>= 0.8) | (m7sfq7_pknw-m5s1q1f_grammer_new <= 1)) & !missing(m7sfq7_pknw) & !missing(m5s1q1f_grammer_new) & !missing(m7_teach_count)
 replace complete_sentence_pknw = 0 if !((1-abs(m7sfq7_pknw-m5s1q1f_grammer_new)/m7_teach_count>= 0.8) | (m7sfq7_pknw-m5s1q1f_grammer_new <= 1)) & !missing(m7sfq7_pknw) & !missing(m5s1q1f_grammer_new) & !missing(m7_teach_count)
+
 gen experience_pknw = 1 if ((1-abs(m7sfq9_pknw_filter-teacher_count_experience_less3)/m7_teach_count>= 0.8) | (m7sfq9_pknw_filter-teacher_count_experience_less3 <= 1)) & !missing(m7sfq9_pknw_filter) & !missing(teacher_count_experience_less3) & !missing(m7_teach_count)
 replace experience_pknw = 0 if !((1-abs(m7sfq9_pknw_filter-teacher_count_experience_less3)/m7_teach_count>= 0.8) | (m7sfq9_pknw_filter-teacher_count_experience_less3 <= 1)) & !missing(m7sfq9_pknw_filter) & !missing(teacher_count_experience_less3) & !missing(m7_teach_count)
+
 gen textbooks_pknw = 1 if ((1-abs(m7sfq10_pknw-m4scq5_inpt)/m4scq4_inpt>= 0.8) | (m7sfq10_pknw-m4scq5_inpt <= 3)) & !missing(m7sfq10_pknw) & !missing(m4scq5_inpt) & !missing(m4scq4_inpt)
 replace textbooks_pknw = 0 if !((1-abs(m7sfq10_pknw-m4scq5_inpt)/m4scq4_inpt>= 0.8) | (m7sfq10_pknw-m4scq5_inpt <= 3)) & !missing(m7sfq10_pknw) & !missing(m4scq5_inpt) & !missing(m4scq4_inpt)
+
 gen blackboard_pknw = 1 if m7sfq11_pknw==blackboard_functional & !missing(m7sfq11_pknw) & !missing(blackboard_functional)
 replace blackboard_pknw = 0 if m7sfq11_pknw!=blackboard_functional & !missing(m7sfq11_pknw) & !missing(blackboard_functional)
-egen principal_knowledge_avg = rowmean(add_triple_digit_pknw multiply_double_digit_pknw complete_sentence_pknw experience_pknw textbooks_pknw blackboard_pknw)
 
+
+*/
+
+egen principal_knowledge_avg = rowmean(add_triple_digit_pknw multiply_double_digit_pknw complete_sentence_pknw experience_pknw textbooks_pknw blackboard_pknw)
 gen principal_knowledge_score = 5 if principal_knowledge_avg>0.9 & !missing(principal_knowledge_avg)
 replace principal_knowledge_score = 4 if principal_knowledge_avg>0.8 & principal_knowledge_avg<=0.9
 replace principal_knowledge_score = 3 if principal_knowledge_avg>0.7 & principal_knowledge_avg<=0.8
@@ -902,6 +1222,11 @@ replace principal_knowledge_score = 1 if principal_knowledge_avg<=0.6 & !missing
 
 svyset school_code, strata(strata) singleunit(scaled) weight(school_weight)
 svy: mean principal_knowledge_score
+
+frame change school
+
+frlink 1:1 school_code, frame(pknw)
+frget add_triple_digit_pknw multiply_double_digit_pknw complete_sentence_pknw experience_pknw textbooks_pknw blackboard_pknw principal_knowledge_avg principal_knowledge_score, from(pknw)
 
 ********************************************
 ***** School Principal Management Skills ***********
