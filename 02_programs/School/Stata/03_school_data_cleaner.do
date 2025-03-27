@@ -130,7 +130,7 @@ svy: mean student_attendance
 replace m4scq13_girls = . if m4scq13_girls == 98 // replace do not know as missing
 
 *most likely a typo
-replace m4scq13_girls = 2 if school_code == 414010263
+replace m4scq13_girls = 2 if school_code == 417020374
 
 gen girls_num_attending = (m4scq4_inpt-m4scq4n_girls)
 gen girls_on_list = (m4scq12_inpt-m4scq13_girls) 
@@ -152,7 +152,6 @@ replace student_attendance_male = m4scq13_girls/m4scq4n_girls if m4scq13_girls <
 assert (student_attendance_male >= 0 & student_attendance_male <= 1) | missing(student_attendance_male) // making sure this is indeed correct
 replace student_attendance_male=100*student_attendance_male
 
-XL
 
 svyset school_code [pw=school_weight], strata(strata) singleunit(scaled) 
 svy: mean student_attendance_male
@@ -1575,6 +1574,10 @@ frame change teachers
 local intrinsic_motiv_q_rev m3scq1_tinm m3scq2_tinm m3scq3_tinm m3scq4_tinm m3scq5_tinm m3scq6_tinm m3scq7_tinm m3scq10_tinm
 local intrinsic_motiv_q m3scq11_tinm m3scq14_tinm
 local intrinsic_motiv_q_all m3scq1_tinm m3scq2_tinm m3scq3_tinm m3scq4_tinm m3scq5_tinm m3scq6_tinm m3scq7_tinm m3scq10_tinm m3scq11_tinm m3scq14_tinm
+
+foreach v of varlist m3scq*_tinm {
+ 	replace `v' = . if `v' == 99
+ }
 
 *(De Facto) Percent of teachers that agree or strongly agrees with It is acceptable for a teacher to be absent if the ~
 gen SE_PRM_TINM_1 = 0 if m3scq1_tinm<3 & !missing(m3scq1_tinm)
