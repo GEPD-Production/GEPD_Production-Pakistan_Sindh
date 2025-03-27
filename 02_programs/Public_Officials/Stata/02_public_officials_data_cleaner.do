@@ -120,6 +120,7 @@ replace scored_temp=2 if QB4q2>=90 & QB4q2<100
 replace scored_temp=3 if QB4q2>=100 & QB4q2<110
 replace scored_temp=4 if QB4q2>=110 & QB4q2<120
 replace scored_temp=5 if QB4q2>=120
+replace scored_temp = . if missing(QB4q2) | inlist(QB4q2, 900, 998)
 replace scored_QB4q2=scored_temp
 drop scored_temp
 
@@ -130,6 +131,7 @@ replace scored_temp=2 if IDM1q3>15 & IDM1q3<=20
 replace scored_temp=3 if IDM1q3>10 & IDM1q3<=15
 replace scored_temp=4 if IDM1q3>5 & IDM1q3<=10
 replace scored_temp=5 if IDM1q3>=0 & IDM1q3<=5
+replace scored_temp = . if missing(IDM1q3) | inlist(IDM1q3, 900, 998)
 replace scored_IDM1q3=scored_temp
 drop scored_temp
 
@@ -141,6 +143,7 @@ replace scored_temp=2 if IDM3q1>15 & IDM3q1<=20
 replace scored_temp=3 if IDM3q1>10 & IDM3q1<=15
 replace scored_temp=4 if IDM3q1>5 & IDM3q1<=10
 replace scored_temp=5 if IDM3q1>=0 & IDM3q1<=5
+replace scored_temp = . if missing(IDM3q1) | inlist(IDM3q1, 900, 998)
 replace scored_IDM3q1=scored_temp
 drop scored_temp
 
@@ -152,6 +155,7 @@ replace scored_temp=2 if IDM3q2>15 & IDM3q2<=20
 replace scored_temp=3 if IDM3q2>10 & IDM3q2<=15
 replace scored_temp=4 if IDM3q2>5 & IDM3q2<=10
 replace scored_temp=5 if IDM3q2>=0 & IDM3q2<=5
+replace scored_temp = . if missing(IDM3q2) | inlist(IDM3q2, 900, 998)
 replace scored_IDM3q2=scored_temp
 drop scored_temp
 
@@ -163,6 +167,7 @@ replace scored_temp=2 if IDM3q3>15 & IDM3q3<=20
 replace scored_temp=3 if IDM3q3>10 & IDM3q3<=15
 replace scored_temp=4 if IDM3q3>5 & IDM3q3<=10
 replace scored_temp=5 if IDM3q3>=0 & IDM3q3<=5
+replace scored_temp = . if missing(IDM3q3) | inlist(IDM3q3, 900, 998)
 replace scored_IDM3q3=scored_temp
 drop scored_temp
 
