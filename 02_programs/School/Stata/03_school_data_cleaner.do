@@ -1320,16 +1320,18 @@ frame change teachers
 
 gen teacher_satisfied_job = . if m3seq1_tatt==99
 replace teacher_satisfied_job= 5 if m3seq1_tatt==1
-replace teacher_satisfied_job= 3.67 if m3seq1_tatt==2
-replace teacher_satisfied_job= 2.33 if m3seq1_tatt==3
-replace teacher_satisfied_job= 1 if m3seq1_tatt==4
+replace teacher_satisfied_job= 4 if m3seq1_tatt==2
+replace teacher_satisfied_job= 3 if m3seq1_tatt==3
+replace teacher_satisfied_job= 2 if m3seq1_tatt==4
+replace teacher_satisfied_job= 1 if m3seq1_tatt==5
 replace teacher_satisfied_job= teacher_satisfied_job/5
 
 gen teacher_satisfied_status = . if m3seq2_tatt==99
 replace teacher_satisfied_status= 5 if m3seq2_tatt==1
-replace teacher_satisfied_status= 3.67 if m3seq2_tatt==2
-replace teacher_satisfied_status= 2.33 if m3seq2_tatt==3
-replace teacher_satisfied_status= 1 if m3seq2_tatt==4
+replace teacher_satisfied_status= 4 if m3seq2_tatt==2
+replace teacher_satisfied_status= 3 if m3seq2_tatt==3
+replace teacher_satisfied_status= 2 if m3seq2_tatt==4
+replace teacher_satisfied_status= 1 if m3seq2_tatt==5
 replace teacher_satisfied_status= teacher_satisfied_status/5
 
 gen better_teachers_promoted = 1 if m3seq3_tatt==1
@@ -1545,7 +1547,7 @@ replace attendance_rewarded = 1 if m3seq4_tatt==1 & m3seq5_tatt__1==1
 replace attendance_rewarded=. if missing(m3seq4_tatt) 
 
 gen attendence_sanctions = 0 if !(missing(m3sbq2_tmna__1) & missing(m3sbq2_tmna__2) & missing(m3sbq2_tmna__3) & missing(m3sbq2_tmna__4)& missing(m3sbq2_tmna__5) & missing(m3sbq2_tmna__6) & missing(m3sbq2_tmna__97))
-replace attendence_sanctions = . if missing(m3sbq2_tmna__1) & missing(m3sbq2_tmna__2) & missing(m3sbq2_tmna__3) & missing(m3sbq2_tmna__4) & missing(m3sbq2_tmna__5) & missing(m3sbq2_tmna__6) & missing(m3sbq2_tmna__97))
+replace attendence_sanctions = . if missing(m3sbq2_tmna__1) & missing(m3sbq2_tmna__2) & missing(m3sbq2_tmna__3) & missing(m3sbq2_tmna__4) & missing(m3sbq2_tmna__5) & missing(m3sbq2_tmna__6) & missing(m3sbq2_tmna__97)
 replace attendence_sanctions = 1 if (m3sbq2_tmna__1==1 | m3sbq2_tmna__2==1 | m3sbq2_tmna__3==1 | m3sbq2_tmna__4==1 | m3sbq2_tmna__5 == 1 | m3sbq2_tmna__6 == 1 | m3sbq2_tmna__97==1)
 
 gen miss_class_admin=0 if (m3sbq1_tatt__1==0 & m3sbq1_tatt__2==0 & m3sbq1_tatt__3==0 & m3sbq1_tatt__97==0)
@@ -1738,11 +1740,13 @@ gl gdp_pcap `r(mean)'
 
 frame change school
 
+
 gen principal_satisfaction = . if m7shq1_satt==99
 replace principal_satisfaction = 5 if m7shq1_satt==1
-replace principal_satisfaction = 3.67 if m7shq1_satt==2
-replace principal_satisfaction = 2.33 if m7shq1_satt==3
-replace principal_satisfaction = 1 if m7shq1_satt==4
+replace principal_satisfaction = 4 if m7shq1_satt == 2
+replace principal_satisfaction = 3 if m7shq1_satt == 3
+replace principal_satisfaction = 2 if m7shq1_satt == 4
+replace principal_satisfaction = 1 if m7shq1_satt == 5
 
 replace m7shq2_satt=. if m7shq2_satt<0
 replace m7shq2_satt=. if m7shq2_satt==999
