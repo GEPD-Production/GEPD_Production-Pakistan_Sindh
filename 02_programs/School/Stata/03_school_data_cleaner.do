@@ -781,7 +781,6 @@ svy: mean `var' if m8s1q3==2
 }
 
 
-XXX:
 *******************
 *ECD assessment
 *******************
