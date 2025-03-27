@@ -10,7 +10,7 @@ library(srvyr)
 library(writexl)
 
 # Country name and year of survey
-country_name <- "Pakistan-Sindh"
+country_name <- "Pakistan_Sindh"
 country <- "PAK"
 year <- "2023"
 software <- "Stata" # choose R or Stata
@@ -164,6 +164,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       mutate(
         VALUE = eval(parse(text = indicator))
       ) %>%
+      mutate(strata = factor(strata)) %>%
       filter(!is.na(school_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
       select(VALUE, one_of(strata), school_weight) %>%
@@ -212,6 +213,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.infinite(school_weight)) %>%
       filter(!is.na(teacher_abs_weight)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_abs_weight, school_code, teachers_id) %>%
+      mutate(strata = factor(strata)) %>%
       pivot_longer(
         cols = "VALUE",
         names_to = "indicators",
@@ -257,6 +259,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
       filter(!is.na(teacher_questionnaire_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_questionnaire_weight, school_code, teachers_id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -303,6 +306,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.na(teacher_content_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_content_weight, school_code, teachers_id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -349,6 +353,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
       filter(!is.na(teacher_pedagogy_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_pedagogy_weight, school_code, teachers_id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -395,6 +400,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.na(g4_stud_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, g4_stud_weight, school_code, fourth_grade_assessment__id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -441,6 +447,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.na(g1_stud_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, g1_stud_weight, school_code, ecd_assessment__id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -1234,7 +1241,7 @@ indicators <- list(
   c("SE.PRM.SSLD.11 ", " 100*(m7sgq2_ssld==2)		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is qua~
   c("SE.PRM.SSLD.12 ", " 100*(m7sgq2_ssld==3)		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is dem~
   c("SE.PRM.SSLD.13 ", " 100*(m7sgq2_ssld==4)		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is hav~
-  c("SE.PRM.SSLD.14 ", " 100*(m7sgq2_ssld==6		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is pol~
+  c("SE.PRM.SSLD.14 ", " 100*(m7sgq2_ssld==6)		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is pol~
   c("SE.PRM.SSLD.15 ", " 100*(m7sgq2_ssld==7)		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is eth~
   c("SE.PRM.SSLD.16 ", " 100*(m7sgq2_ssld==8)		", "school", "SSLD", "All"), # (De Facto) Percent of principals that report that the most important factor considered when selecting a principal is kno~
   c("SE.PRM.SSLD.2", "principal_factors", "policy_survey", "NA", "NA"), # (De Jure) How are the principals selected? Based on the requirements, is the selection system meritocratic?

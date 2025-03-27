@@ -780,7 +780,6 @@ foreach var in student_knowledge student_proficient  {
 svy: mean `var' if m8s1q3==2
 }
 
-
 *******************
 *ECD assessment
 *******************
