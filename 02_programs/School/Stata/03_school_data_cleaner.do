@@ -118,33 +118,44 @@ frame change school
 *Percent of 4th grade students who are present during an unannounced visit.
 
 gen student_attendance=m4scq4_inpt/m4scq12_inpt
-*fix an issue where sometimes enumerators will get these two questions mixed up.
-replace student_attendance=m4scq12_inpt/m4scq4_inpt if m4scq4_inpt>m4scq12_inpt & !missing(student_attendance)
-replace student_attendance=1 if student_attendance>1 & !missing(student_attendance)
+
+assert (student_attendance >= 0 & student_attendance <= 1) | missing(student_attendance) // making sure this value is within expected boundaries (should always be the case (at least in new implementaations) since there is a validation condition for this in SS)
+
 replace student_attendance=100*student_attendance
 
 
 svyset school_code [pw=school_weight], strata(strata) singleunit(scaled) 
 svy: mean student_attendance
 
-*Boys attendance
-gen boys_num_attending = (m4scq4_inpt-m4scq4n_girls)
-gen boys_on_list = (m4scq12_inpt-m4scq13_girls)
-gen student_attendance_male = boys_num_attending/boys_on_list
+replace m4scq13_girls = . if m4scq13_girls == 98 // replace do not know as missing
+
+*most likely a typo
+replace m4scq13_girls = 2 if school_code == 414010263
+
+gen girls_num_attending = (m4scq4_inpt-m4scq4n_girls)
+gen girls_on_list = (m4scq12_inpt-m4scq13_girls) 
+ 
+replace girls_on_list = (m4scq4_inpt-m4scq4n_girls) if (m4scq4_inpt-m4scq4n_girls) > (m4scq12_inpt-m4scq13_girls) & !missing(girls_num_attending) & !missing(girls_on_list)
+replace girls_num_attending = (m4scq12_inpt-m4scq13_girls) if (m4scq12_inpt-m4scq13_girls) < (m4scq4_inpt-m4scq4n_girls) & !missing(girls_num_attending) & !missing(girls_on_list)
+
+ 
+gen student_attendance_female = girls_num_attending/girls_on_list
+  
+assert (student_attendance_female >= 0 & student_attendance_female <= 1) | missing(student_attendance_female) // making sure this is indeed correct
+replace student_attendance_female=100*student_attendance_female
+
+
+*Girls attendance
+gen student_attendance_male = m4scq4n_girls/m4scq13_girls
 *fix an issue where sometimes enumerators will get these two questions mixed up.
-replace student_attendance_male=0 if student_attendance_male<0  & !missing(student_attendance_male)
-replace student_attendance_male=1 if (student_attendance_male>1 & !missing(student_attendance_male)) | (boys_on_list==0 & boys_num_attending>boys_on_list)
+replace student_attendance_male = m4scq13_girls/m4scq4n_girls if m4scq13_girls < m4scq4n_girls & !missing(m4scq13_girls) & !missing(m4scq4n_girls)
+assert (student_attendance_male >= 0 & student_attendance_male <= 1) | missing(student_attendance_male) // making sure this is indeed correct
 replace student_attendance_male=100*student_attendance_male
 
+XL
 
 svyset school_code [pw=school_weight], strata(strata) singleunit(scaled) 
 svy: mean student_attendance_male
-
-*Girls attendance
-gen student_attendance_female = m4scq4n_girls/m4scq13_girls
-*fix an issue where sometimes enumerators will get these two questions mixed up.
-replace student_attendance_female=1 if student_attendance_female>1 & !missing(student_attendance_female)
-replace student_attendance_female=100*student_attendance_female
 
 svyset school_code [pw=school_weight], strata(strata) singleunit(scaled) 
 svy: mean student_attendance_female
@@ -756,9 +767,11 @@ svy: mean drinking_water functioning_toilet internet class_electricity disabilit
 
 frame change school
 
-gen vignette_1_resp = cond(m7sbq1_opmn==0 & (m7sbq4_opmn==4 | m7sbq4_opmn==98),0,0.5,.)
+
+gen vignette_1_resp = cond((m7sbq1_opmn==0 | m7sbq1_opmn == 98) & (m7sbq4_opmn==4 | m7sbq4_opmn==98),0,0.5,.)
 replace vignette_1_resp=. if missing(m7sbq1_opmn) & missing(m7sbq1_opmn)
-replace vignette_1_resp = 0.5 if !m7sbq1_opmn==0 & (m7sbq4_opmn==4 | m7sbq4_opmn==98)
+replace vignette_1_resp = 0.5 if !(m7sbq1_opmn==0 | m7sbq1_opmn == 98) & (m7sbq4_opmn==4 | m7sbq4_opmn==98)
+
 gen vignette_1_finance= 0.5 if m7sbq2_opmn==1
 replace vignette_1_finance = 0.25 if (m7sbq2_opmn==2 | m7sbq2_opmn==97)
 replace vignette_1_finance = 0 if m7sbq2_opmn==3
@@ -776,9 +789,11 @@ gen vignette_1 = vignette_1_resp + vignette_1_finance + vignette_1_address
 *  // no one responsible that is known
 gen vignette_2_resp = 0 if m7scq1_opmn==98
 replace vignette_2_resp = 0.5 if m7scq1_opmn!=98 &!missing(m7scq1_opmn)
+
 * //parents are forced to buy textbooks 
-gen vignette_2_finance = 0 if m7scq1_opmn==1
-replace vignette_2_finance = 0.5 if m7scq1_opmn!=1 & !missing(m7scq1_opmn)
+gen vignette_2_finance = 0 if m7scq1_opmn==1 | m7scq1_opmn == 98
+replace vignette_2_finance = 0.5 if !(m7scq1_opmn==1 | m7scq1_opmn == 98) & !missing(m7scq1_opmn)
+
 *Give partial credit based on how quickly it will be solved <1 month, 1-3, 3-6, 6-12, >1 yr
 gen vignette_2_address = 1 if m7scq2_opmn==1
 replace vignette_2_address = .75 if m7scq2_opmn==2
