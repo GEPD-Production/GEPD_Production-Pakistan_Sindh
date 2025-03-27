@@ -465,6 +465,7 @@ foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
 
 */
 
+
 * Call out scorer
 qui ds m8saq2_id* m8saq3_id* m8sbq1_number_sense*
 foreach var in `r(varlist)' {
