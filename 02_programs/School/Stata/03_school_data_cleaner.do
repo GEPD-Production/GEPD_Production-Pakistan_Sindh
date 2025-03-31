@@ -372,6 +372,7 @@ drop s1_a1_pro s1_a2_pro s1_b3_pro s1_b4_pro s1_b5_pro s1_b6_pro ///
 s1_c7_pro s1_c8_pro s1_c9_pro classroom_culture_pro instruction_pro ///
 socio_emotional_skills_pro cc_counter i_counter se_counter tch_counter
 
+
 ********************************************************************************
 
 ************
@@ -452,6 +453,8 @@ gen number_m8saq2_id_cor = 1 if m8saq2_id__3 == 1 & m8saq2_id__4 == 1 & m8saq2_i
 gen number_m8saq3_id_cor = 1 if m8saq3_id__2 == 1 & number_m8saq3_id == 1
 gen number_m8sbq1_number_sense_cor = 1 if m8sbq1_number_sense__1 == 1 & m8sbq1_number_sense__3 == 1 & m8sbq1_number_sense__4 == 1 & number_m8sbq1_number_sense == 3
 
+X:
+
 *do the following check: (i) if the number of correct (according to the manual) is >= 50% OR if the number of students circling three letters is 50%, then do not drop this question from grading. 
 foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
 	replace number_`v'_cor = 0 if number_`v'_cor != 1 & number_`v' != . 
@@ -460,6 +463,7 @@ foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
 	sum number_`v'_cor
 	local mean_`v' = `r(mean)'
 }
+
 	
 	if (`mean_m8saq2_id' >= 0.5) & (`mean_m8saq3_id' >= 0.5) & (`mean_m8sbq1_number_sense' >= 0.5) {
 		
@@ -601,6 +605,9 @@ foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
 					}
 					
 					keep school_code perfect_match_* second_match_* *_complicated_list school_*_complicated
+	}
+	
+	X:
 					
 					*for PAK only, in the schools where almost all letters/numbers/words are circled by most students, set them to missing
 					replace school_letter_complicated = . if inlist(letter_complicated_list, "1, 2, 3, 4, 5, 6, 7, 8, 9, ")
@@ -1998,6 +2005,8 @@ replace principal_satisfaction = 1 if m7shq1_satt == 5
 
 replace m7shq2_satt=. if m7shq2_satt<0
 replace m7shq2_satt=. if m7shq2_satt==999
+
+*from 10k to 200k
 
 gen principal_salary=12*m7shq2_satt/$gdp_pcap	
 

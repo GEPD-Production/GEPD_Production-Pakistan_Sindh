@@ -362,7 +362,7 @@ egen teacher_abs_count=count(m2sbq6_efft), by(school_code)
 gen teacher_abs_weight=numEligible/teacher_abs_count
 replace teacher_abs_weight=1 if missing(teacher_abs_weight) //fix issues where no g1 teachers listed. Can happen in very small schools
 
-/*
+
 *teacher questionnaire weights
 *get number of teachers checked for absense
 egen teacher_quest_count=count(m3s0q1), by(school_code)
@@ -378,7 +378,7 @@ replace teacher_content_weight=1 if missing(teacher_content_weight) //fix issues
 *teacher pedagogy weights
 gen teacher_pedagogy_weight=numEligible4th/1 // one teacher selected
 replace teacher_pedagogy_weight=1 if missing(teacher_pedagogy_weight) //fix issues where no g1 teachers listed. Can happen in very small schools
-*/
+
 
 * Comment_AR: Don't know why this step is happening in the code. Take out the drop
 * drop if missing(school_weight)
@@ -389,6 +389,7 @@ unique school_code if in_pedagogy ==1
 * Comment_AR: Confirmed with Firm:
 replace school_code = 408140059 if school_code ==. 
 
+/*
 * drop if interview__id == "c4692717cfd649c5b77b54e72cbccfb3"
 *teacher questionnaire weights
 *get number of teachers (at school) who completed the questionnaire
@@ -454,7 +455,6 @@ replace eligible = 0 if m2saq8__97 == 1 // teaching other subjects
 *replace eligible = 0 if !inlist(teacher_available, 1, 90) & !missing(teacher_available)
 *replace eligible = 0  if m2saq6 == 2
 *replace eligible = 0 if m2saq5 == 4
-
 replace eligible = 1 if eligible == 0 & s1_0_1_1 != .
 
 bysort school_code: egen numEligible4th_manual = sum(eligible)
@@ -469,11 +469,9 @@ replace teacher_pedagogy_weight=1 if missing(teacher_pedagogy_weight) //fix issu
 
 isid school_code teachers__id
 
-X:
-
-gen teacher_pedagogy_weight=numEligible4th/1 // one teacher selected
-replace teacher_pedagogy_weight=1 if missing(teacher_pedagogy_weight) //fix issues where no g1 teachers listed. Can happen in very small schools
-
+gen teacher_pedagogy_weight_old=numEligible4th/1 // one teacher selected
+replace teacher_pedagogy_weight_old=1 if missing(teacher_pedagogy_weight_old) //fix issues where no g1 teachers listed. Can happen in very small schools
+*/
 //Check that manual roster info is added:
 * br school_code m3* if school_code == 406031103
 
