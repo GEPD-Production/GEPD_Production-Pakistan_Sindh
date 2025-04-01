@@ -453,8 +453,6 @@ gen number_m8saq2_id_cor = 1 if m8saq2_id__3 == 1 & m8saq2_id__4 == 1 & m8saq2_i
 gen number_m8saq3_id_cor = 1 if m8saq3_id__2 == 1 & number_m8saq3_id == 1
 gen number_m8sbq1_number_sense_cor = 1 if m8sbq1_number_sense__1 == 1 & m8sbq1_number_sense__3 == 1 & m8sbq1_number_sense__4 == 1 & number_m8sbq1_number_sense == 3
 
-X:
-
 *do the following check: (i) if the number of correct (according to the manual) is >= 50% OR if the number of students circling three letters is 50%, then do not drop this question from grading. 
 foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
 	replace number_`v'_cor = 0 if number_`v'_cor != 1 & number_`v' != . 
@@ -605,10 +603,7 @@ foreach v in m8saq2_id m8saq3_id m8sbq1_number_sense {
 					}
 					
 					keep school_code perfect_match_* second_match_* *_complicated_list school_*_complicated
-	}
-	
-	X:
-					
+				
 					*for PAK only, in the schools where almost all letters/numbers/words are circled by most students, set them to missing
 					replace school_letter_complicated = . if inlist(letter_complicated_list, "1, 2, 3, 4, 5, 6, 7, 8, 9, ")
 					replace school_word_complicated = . if inlist(word_complicated_list, "1, 2, 3, 4, 5, 6, 7, 8, 9, ")
@@ -2006,7 +2001,9 @@ replace principal_satisfaction = 1 if m7shq1_satt == 5
 replace m7shq2_satt=. if m7shq2_satt<0
 replace m7shq2_satt=. if m7shq2_satt==999
 
-*from 10k to 200k
+*convert the salary to usd dollars, whereever applicable, and set outliers to missing (discussed with Maryam). used the exachange rate for dec 31, 2023
+replace m7shq2_satt = m7shq2_satt*281.84 if m7shq2_satt < 120 & !missing(m7shq2_satt)
+replace m7shq2_satt = . if m7shq2_satt >= 250000 & !missing(m7shq2_satt)
 
 gen principal_salary=12*m7shq2_satt/$gdp_pcap	
 
